@@ -26,61 +26,66 @@ export function useChatbot() {
     scrollToBottom();
   }, [messages, scrollToBottom]);
 
-  const sendMessage = useCallback(async (text: string) => {
+ const sendMessage = useCallback(async (text: string) => {
 
-    if (!text.trim()) return;
+  if (!text.trim()) return;
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      text: text.trim(),
-      sender: 'user',
+  const userMessage: Message = {
+    id: Date.now().toString(),
+    text: text.trim(),
+    sender: 'user',
+    timestamp: new Date(),
+  };
+
+  setMessages((prev) => [...prev, userMessage]);
+  setIsTyping(true);
+
+  try {
+    // Get the backend URL from environment or use default
+    const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+    
+    const response = await fetch(`${BACKEND_URL}/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        message: text,
+        language: language
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    const botMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      text: data.reply,
+      sender: 'bot',
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
-    setIsTyping(true);
+    setMessages((prev) => [...prev, botMessage]);
 
-    try {
+  } catch (error) {
+    console.error("API Error:", error);
+    
+    const botMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      text: "Sorry, I couldn't connect to the AI service. Please try again.",
+      sender: 'bot',
+      timestamp: new Date(),
+    };
 
-      const response = await fetch("https://sehat-saathi-backend.onrender.com/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          message: text,
-          language: language
-        })
-      });
+    setMessages((prev) => [...prev, botMessage]);
+  }
 
-      const data = await response.json();
+  setIsTyping(false);
 
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: data.reply,
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-
-    } catch (error) {
-
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "Sorry, I couldn't connect to the AI service. Please try again.",
-        sender: 'bot',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, botMessage]);
-
-    }
-
-    setIsTyping(false);
-
-  }, [language]);
-
+}, [language]);
   const clearChat = useCallback(() => {
 
     setMessages([
