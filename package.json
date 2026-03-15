@@ -97,11 +97,4 @@
   "engines": {
     "node": ">=18"
   }
-  "scripts": {
-  "dev": "vite",
-  "build": "tsc -b && vite build",
-  "lint": "eslint .",
-  "preview": "vite preview",
-  "start": "node server.js"
-}
 }
