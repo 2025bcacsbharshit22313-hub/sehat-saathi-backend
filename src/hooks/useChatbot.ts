@@ -42,7 +42,7 @@ export function useChatbot() {
 
     try {
 
-      const response = await fetch("https://sehat-saathi-backend.onrender.com", {
+      const response = await fetch("https://sehat-saathi-backend.onrender.com/chat", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
